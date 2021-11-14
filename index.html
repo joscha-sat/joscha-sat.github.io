@@ -1,0 +1,78 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <meta http-equiv="X-UA-Compatible" content="IE=edge" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <meta name="description" content="Bitcoin" />
+    <meta name="theme-color" content="#685f85" />
+    <title>Bitcoin Value Fetcher</title>
+    <link rel="stylesheet" type="text/css" href="styles.css" media="all" />
+    <link rel="manifest" href="manifest.json" />
+    <link
+      rel="stylesheet"
+      href="https://cdn.jsdelivr.net/npm/bulma@0.9.3/css/bulma.min.css"
+    />
+  </head>
+  <body onload="lastBTC()">
+    <div id="container">
+      <h1 class="is-size-1">Bitcoin Value Fetcher</h1>
+      <button class="button mt-5" onclick="fetchBitcoin()">Get it now!</button>
+
+      <div class="notification is-danger invisible mt-5" id="not">
+        <button class="delete" onclick="closeInfo()"></button>
+        You are offline, no new fetches possible!
+      </div>
+
+      <p id="bitcoinText" class="mt-5"></p>
+    </div>
+    <script>
+      function fetchBitcoin() {
+        // OFFLINE
+        if (!navigator.onLine) {
+          document.getElementById("not").classList.remove("invisible");
+          document.getElementById("not").classList.add("visible");
+        }
+
+        // ONLINE
+        var url =
+          "https://min-api.cryptocompare.com/data/pricemulti?fsyms=BTC&tsyms=EUR";
+        var request = new XMLHttpRequest();
+        request.onreadystatechange = function () {
+          if (request.readyState === XMLHttpRequest.DONE) {
+            if (request.status === 200) {
+              var response = JSON.parse(request.response);
+              var now = new Date().toLocaleDateString();
+              document.getElementById("bitcoinText").innerHTML =
+                now + " : " + response.BTC.EUR + " €";
+              // store value to local store
+              localStorage.setItem(
+                "btc",
+                now + " : " + response.BTC.EUR + " €"
+              );
+            }
+          }
+        };
+        request.open("GET", url);
+        request.send();
+      }
+      function lastBTC() {
+        document.getElementById("bitcoinText").innerHTML =
+          localStorage.getItem("btc");
+      }
+      function closeInfo() {
+        document.getElementById("not").classList.remove("visible");
+        document.getElementById("not").classList.add("invisible");
+      }
+    </script>
+    <script>
+      if ("serviceWorker" in navigator) {
+        navigator.serviceWorker
+          .register("./serviceworker.js")
+          .then(function () {
+            console.log("Service Worker Registered");
+          });
+      }
+    </script>
+  </body>
+</html>
